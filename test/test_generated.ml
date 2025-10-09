@@ -28,10 +28,6 @@
  * simplify this file and increase coverage.
  * For now, this is a limited test-suite. *)
 
-let char = Crowbar.map [Crowbar.uint8] Char.chr
-
-let string = Crowbar.bytes
-
 (* The v0.1 of Crowbar doesn't have fixed-size string generation. When we
  * update Crowbar, we can improve this generator. *)
 let short_string =
@@ -48,24 +44,7 @@ let short_string =
           Bytes.to_string s);
     ]
 
-let short_string1 =
-  let open Crowbar in
-  choose
-    [
-      map [char] (fun c -> String.make 1 c);
-      map [char; char; char; char] (fun c1 c2 c3 c4 ->
-          let s = Bytes.make 4 c1 in
-          Bytes.set s 1 c2 ;
-          Bytes.set s 2 c3 ;
-          Bytes.set s 3 c4 ;
-          Bytes.to_string s);
-    ]
-
-let mbytes = Crowbar.map [Crowbar.bytes] Bytes.of_string
-
 let short_mbytes = Crowbar.map [short_string] Bytes.of_string
-
-let short_mbytes1 = Crowbar.map [short_string1] Bytes.of_string
 
 (* We need to hide the type parameter of `Encoding.t` to avoid the generator
  * combinator `choose` from complaining about different types. We use first
@@ -213,29 +192,6 @@ let map_int53 (i : int64) : testable =
     let pp = Crowbar.pp_int64
 
     let eq = Int64.equal
-  end)
-
-let map_range_int a b c : testable =
-  let small, middle, big =
-    match List.sort compare [a; b; c] with
-    | [small; middle; big] ->
-        assert (small <= middle) ;
-        assert (middle <= big) ;
-        (small, middle, big)
-    | _ -> assert false
-  in
-  (module struct
-    type t = int
-
-    let v = middle
-
-    let name = Format.asprintf "ranged(%d-%d-%d)" small middle big
-
-    let ding = Json_encoding.ranged_int ~minimum:small ~maximum:big name
-
-    let pp ppf i = Crowbar.pp ppf "(%d :[%d;%d])" i small big
-
-    let eq = Int.equal
   end)
 
 let map_range_float a b c : testable =
@@ -595,73 +551,6 @@ let map_none (t : testable) : testable =
     let eq = Option.equal T.eq
   end)
 
-let map_list (t : testable) (ts : testable list) : testable =
-  let module T = (val t) in
-  (module struct
-    type t = T.t list
-
-    let ding = Json_encoding.list T.ding
-
-    let v =
-      List.fold_left
-        (fun acc (t : testable) ->
-          let module T = (val t) in
-          (* We can get rid of this Obj when we update Crowbar *)
-          Obj.magic T.v :: acc)
-        []
-        ts
-
-    let pp = Crowbar.pp_list T.pp
-
-    let eq = List.for_all2 T.eq
-  end)
-
-let map_array (t : testable) (ts : testable array) : testable =
-  let module T = (val t) in
-  (module struct
-    type t = T.t array
-
-    let ding = Json_encoding.array T.ding
-
-    let v =
-      Array.of_list
-        (Array.fold_left
-           (fun acc (t : testable) ->
-             let module T = (val t) in
-             Obj.magic T.v :: acc)
-           []
-           ts)
-
-    let pp ppf a =
-      if Array.length a > 40 then
-        Crowbar.pp
-          ppf
-          "@[<hv 1>[|%a … (%d more elements)|]@]"
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-             T.pp)
-          (Array.to_list (Array.sub a 0 30))
-          (Array.length a)
-      else
-        Crowbar.pp
-          ppf
-          "@[<hv 1>[|%a|]@]"
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-             T.pp)
-          (Array.to_list a)
-
-    let eq a1 a2 =
-      Array.length a1 = Array.length a2
-      &&
-      try
-        for i = 0 to Array.length a1 - 1 do
-          if not (T.eq a1.(i) a2.(i)) then raise Exit
-        done ;
-        true
-      with Exit -> false
-  end)
-
 let map_obj1 (t1 : testable) : testable =
   let module T1 = (val t1) in
   (module struct
@@ -837,221 +726,6 @@ let map_tup6 (t1 : testable) (t2 : testable) (t3 : testable) (t4 : testable)
       && T6.eq a6 b6
   end)
 
-let map_tup7 (t1 : testable) (t2 : testable) (t3 : testable) (t4 : testable)
-    (t5 : testable) (t6 : testable) (t7 : testable) : testable =
-  let module T1 = (val t1) in
-  let module T2 = (val t2) in
-  let module T3 = (val t3) in
-  let module T4 = (val t4) in
-  let module T5 = (val t5) in
-  let module T6 = (val t6) in
-  let module T7 = (val t7) in
-  (module struct
-    type t = T1.t * T2.t * T3.t * T4.t * T5.t * T6.t * T7.t
-
-    let ding =
-      Json_encoding.tup7 T1.ding T2.ding T3.ding T4.ding T5.ding T6.ding T7.ding
-
-    let v = (T1.v, T2.v, T3.v, T4.v, T5.v, T6.v, T7.v)
-
-    let pp ppf (v1, v2, v3, v4, v5, v6, v7) =
-      Crowbar.pp
-        ppf
-        "@[<hv 1>(%a, %a, %a, %a, %a, %a, %a)@]"
-        T1.pp
-        v1
-        T2.pp
-        v2
-        T3.pp
-        v3
-        T4.pp
-        v4
-        T5.pp
-        v5
-        T6.pp
-        v6
-        T7.pp
-        v7
-
-    let eq (a1, a2, a3, a4, a5, a6, a7) (b1, b2, b3, b4, b5, b6, b7) =
-      T1.eq a1 b1 && T2.eq a2 b2 && T3.eq a3 b3 && T4.eq a4 b4 && T5.eq a5 b5
-      && T6.eq a6 b6 && T7.eq a7 b7
-  end)
-
-let map_tup8 (t1 : testable) (t2 : testable) (t3 : testable) (t4 : testable)
-    (t5 : testable) (t6 : testable) (t7 : testable) (t8 : testable) : testable =
-  let module T1 = (val t1) in
-  let module T2 = (val t2) in
-  let module T3 = (val t3) in
-  let module T4 = (val t4) in
-  let module T5 = (val t5) in
-  let module T6 = (val t6) in
-  let module T7 = (val t7) in
-  let module T8 = (val t8) in
-  (module struct
-    type t = T1.t * T2.t * T3.t * T4.t * T5.t * T6.t * T7.t * T8.t
-
-    let ding =
-      Json_encoding.tup8
-        T1.ding
-        T2.ding
-        T3.ding
-        T4.ding
-        T5.ding
-        T6.ding
-        T7.ding
-        T8.ding
-
-    let v = (T1.v, T2.v, T3.v, T4.v, T5.v, T6.v, T7.v, T8.v)
-
-    let pp ppf (v1, v2, v3, v4, v5, v6, v7, v8) =
-      Crowbar.pp
-        ppf
-        "@[<hv 1>(%a, %a, %a, %a, %a, %a, %a, %a)@]"
-        T1.pp
-        v1
-        T2.pp
-        v2
-        T3.pp
-        v3
-        T4.pp
-        v4
-        T5.pp
-        v5
-        T6.pp
-        v6
-        T7.pp
-        v7
-        T8.pp
-        v8
-
-    let eq (a1, a2, a3, a4, a5, a6, a7, a8) (b1, b2, b3, b4, b5, b6, b7, b8) =
-      T1.eq a1 b1 && T2.eq a2 b2 && T3.eq a3 b3 && T4.eq a4 b4 && T5.eq a5 b5
-      && T6.eq a6 b6 && T7.eq a7 b7 && T8.eq a8 b8
-  end)
-
-let map_tup9 (t1 : testable) (t2 : testable) (t3 : testable) (t4 : testable)
-    (t5 : testable) (t6 : testable) (t7 : testable) (t8 : testable)
-    (t9 : testable) : testable =
-  let module T1 = (val t1) in
-  let module T2 = (val t2) in
-  let module T3 = (val t3) in
-  let module T4 = (val t4) in
-  let module T5 = (val t5) in
-  let module T6 = (val t6) in
-  let module T7 = (val t7) in
-  let module T8 = (val t8) in
-  let module T9 = (val t9) in
-  (module struct
-    type t = T1.t * T2.t * T3.t * T4.t * T5.t * T6.t * T7.t * T8.t * T9.t
-
-    let ding =
-      Json_encoding.tup9
-        T1.ding
-        T2.ding
-        T3.ding
-        T4.ding
-        T5.ding
-        T6.ding
-        T7.ding
-        T8.ding
-        T9.ding
-
-    let v = (T1.v, T2.v, T3.v, T4.v, T5.v, T6.v, T7.v, T8.v, T9.v)
-
-    let pp ppf (v1, v2, v3, v4, v5, v6, v7, v8, v9) =
-      Crowbar.pp
-        ppf
-        "@[<hv 1>(%a, %a, %a, %a, %a, %a, %a, %a, %a)@]"
-        T1.pp
-        v1
-        T2.pp
-        v2
-        T3.pp
-        v3
-        T4.pp
-        v4
-        T5.pp
-        v5
-        T6.pp
-        v6
-        T7.pp
-        v7
-        T8.pp
-        v8
-        T9.pp
-        v9
-
-    let eq (a1, a2, a3, a4, a5, a6, a7, a8, a9)
-        (b1, b2, b3, b4, b5, b6, b7, b8, b9) =
-      T1.eq a1 b1 && T2.eq a2 b2 && T3.eq a3 b3 && T4.eq a4 b4 && T5.eq a5 b5
-      && T6.eq a6 b6 && T7.eq a7 b7 && T8.eq a8 b8 && T9.eq a9 b9
-  end)
-
-let map_tup10 (t1 : testable) (t2 : testable) (t3 : testable) (t4 : testable)
-    (t5 : testable) (t6 : testable) (t7 : testable) (t8 : testable)
-    (t9 : testable) (t10 : testable) : testable =
-  let module T1 = (val t1) in
-  let module T2 = (val t2) in
-  let module T3 = (val t3) in
-  let module T4 = (val t4) in
-  let module T5 = (val t5) in
-  let module T6 = (val t6) in
-  let module T7 = (val t7) in
-  let module T8 = (val t8) in
-  let module T9 = (val t9) in
-  let module T10 = (val t10) in
-  (module struct
-    type t =
-      T1.t * T2.t * T3.t * T4.t * T5.t * T6.t * T7.t * T8.t * T9.t * T10.t
-
-    let ding =
-      Json_encoding.tup10
-        T1.ding
-        T2.ding
-        T3.ding
-        T4.ding
-        T5.ding
-        T6.ding
-        T7.ding
-        T8.ding
-        T9.ding
-        T10.ding
-
-    let v = (T1.v, T2.v, T3.v, T4.v, T5.v, T6.v, T7.v, T8.v, T9.v, T10.v)
-
-    let pp ppf (v1, v2, v3, v4, v5, v6, v7, v8, v9, v10) =
-      Crowbar.pp
-        ppf
-        "@[<hv 1>(%a, %a, %a, %a, %a, %a, %a, %a, %a, %a)@]"
-        T1.pp
-        v1
-        T2.pp
-        v2
-        T3.pp
-        v3
-        T4.pp
-        v4
-        T5.pp
-        v5
-        T6.pp
-        v6
-        T7.pp
-        v7
-        T8.pp
-        v8
-        T9.pp
-        v9
-        T10.pp
-        v10
-
-    let eq (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-        (b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) =
-      T1.eq a1 b1 && T2.eq a2 b2 && T3.eq a3 b3 && T4.eq a4 b4 && T5.eq a5 b5
-      && T6.eq a6 b6 && T7.eq a7 b7 && T8.eq a8 b8 && T9.eq a9 b9
-      && T10.eq a10 b10
-  end)
-
 let map_merge_tups (t1 : testable) (t2 : testable) : testable =
   let module T1 = (val t1) in
   let module T2 = (val t2) in
@@ -1087,22 +761,6 @@ let testable_printer : testable Crowbar.printer =
   T.pp ppf T.v
 
 (* helpers to construct values tester values *)
-
-(* Generator for testable values *)
-
-let tup_gen (tgen : testable Crowbar.gen) : testable Crowbar.gen =
-  let open Crowbar in
-  (* Stack overflow if there are more levels *)
-  with_printer testable_printer
-  @@ choose
-       [
-         map [tgen] map_tup1;
-         map [tgen; tgen] map_tup2;
-         map [tgen; tgen; tgen] map_tup3;
-         map [tgen; tgen; tgen; tgen] map_tup4;
-         map [tgen; tgen; tgen; tgen; tgen] map_tup5;
-         map [tgen; tgen; tgen; tgen; tgen; tgen] map_tup6;
-       ]
 
 let gen =
   let open Crowbar in
