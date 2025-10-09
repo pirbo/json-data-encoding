@@ -1,12 +1,12 @@
 opam-version: "2.0"
 name: "json-data-encoding-browser"
 synopsis: "Type-safe encoding to and decoding from JSON (browser support)"
-maintainer: "contact@nomadic-labs.com"
+maintainer: "pierre.boutillier@laposte.net"
 authors: [ "Nomadic Labs" "Ocamlpro" ]
-homepage: "https://gitlab.com/nomadic-labs/json-data-encoding"
-bug-reports: "https://gitlab.com/nomadic-labs/json-data-encoding/issues"
+homepage: "https://gitlab.com/pirbo/json-data-encoding"
+bug-reports: "https://gitlab.com/pirbo/json-data-encoding/issues"
 license: "MIT"
-dev-repo: "git+https://gitlab.com/nomadic-labs/json-data-encoding"
+dev-repo: "git+https://gitlab.com/pirbo/json-data-encoding"
 
 build: [
   ["dune" "build" "-j" jobs "-p" name]
