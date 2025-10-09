@@ -19,6 +19,6 @@ depends: [
   "uri" {>= "1.9.0" }
   "crowbar" { with-test }
   "alcotest" { with-test }
-  "ocamlformat" { = "0.20.1" & with-doc } # not technically a doc dep; modify when with-dev becomes available
+  "ocamlformat" { = "0.27.0" & dev }
   "odoc" { with-doc }
 ]

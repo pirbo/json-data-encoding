@@ -28,10 +28,10 @@
 
 (** {2 Abstraction over JSON representations} *)
 
-(** The internal format used by the library. A common format to view
-    JSON structures from different representations. It only shows the
-    head of structures, hiding the contents of fields, so that the
-    conversion from another format or a stream can be done lazily. *)
+(** The internal format used by the library. A common format to view JSON
+    structures from different representations. It only shows the head of
+    structures, hiding the contents of fields, so that the conversion from
+    another format or a stream can be done lazily. *)
 type 'a view =
   [ `O of (string * 'a) list  (** An associative table (object). *)
   | `A of 'a list  (** An (integer indexed) array. *)
@@ -40,15 +40,14 @@ type 'a view =
   | `String of string  (** An UTF-8 encoded string. *)
   | `Null  (** The [null] constant. *) ]
 
-(** Each representation must provide a unique identifier, obtained via
-    the {!repr_uid} function. This identifier is used when converting
-    between representations, to optimize out a copy when converting
-    from a representation to itself. Beware that this optimization
-    relies only on this [uid] token. Converting between values of the
-    same type using two different representation modules with
-    different [uid]s will perform a copy. A practical way to ensure
-    that the optimization is made is to write your representations as
-    toplevel modules, and not inside functors. *)
+(** Each representation must provide a unique identifier, obtained via the
+    {!repr_uid} function. This identifier is used when converting between
+    representations, to optimize out a copy when converting from a
+    representation to itself. Beware that this optimization relies only on this
+    [uid] token. Converting between values of the same type using two different
+    representation modules with different [uid]s will perform a copy. A
+    practical way to ensure that the optimization is made is to write your
+    representations as toplevel modules, and not inside functors. *)
 type 'a repr_uid
 
 (** See {!type:repr_uid}. *)
@@ -76,12 +75,11 @@ val convert :
   'tf ->
   'tt
 
-(** Generic pretty-printer. If [compact] is set (by default), then the
-    output is not really pretty (no space is output). Ascii-compatible
-    string encoding is expected, as printing only escapes double
-    quotes and control characters. Use [pp_string] for more advanced
-    escaping. This function does not claim to be the best JSON pretty
-    printer, it is mostly a small utility. *)
+(** Generic pretty-printer. If [compact] is set (by default), then the output is
+    not really pretty (no space is output). Ascii-compatible string encoding is
+    expected, as printing only escapes double quotes and control characters. Use
+    [pp_string] for more advanced escaping. This function does not claim to be
+    the best JSON pretty printer, it is mostly a small utility. *)
 val pp :
   ?compact:bool ->
   ?pp_string:(Format.formatter -> string -> unit) ->
@@ -124,15 +122,14 @@ module Yojson : Repr with type value = yojson
 
 (** {2 Representation-agnostic JSON format} *)
 
-(** A meta-representation for JSON values that can unify values of
-    different representations by boxing them with their corresponding
-    {!Repr} modules. *)
+(** A meta-representation for JSON values that can unify values of different
+    representations by boxing them with their corresponding {!Repr} modules. *)
 type any = private
   | Value_with_repr : (module Repr with type value = 'a) * 'a -> any
 
-(** Converts a boxed value from its intrinsic representation to the
-    one of the given {!Repr} module. Optimized if the internal
-    representation of the value actually is the requested one. *)
+(** Converts a boxed value from its intrinsic representation to the one of the
+    given {!Repr} module. Optimized if the internal representation of the value
+    actually is the requested one. *)
 val any_to_repr : (module Repr with type value = 'a) -> any -> 'a
 
 (** Boxes a value with a compatible {!Repr} module. *)
@@ -147,7 +144,7 @@ val pp_any :
   any ->
   unit
 
-(** {2 Predefined converters for ezjsonm } *)
+(** {2 Predefined converters for ezjsonm} *)
 
 (** see {!type:ezjsonm} *)
 

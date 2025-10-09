@@ -28,33 +28,31 @@
 
 (** {2 Dependent types describing JSON document structures} *)
 
-(** An encoding between an OCaml data type (the parameter) and a
-    JSON representation. To be built using the predefined
-    combinators provided by this module.
+(** An encoding between an OCaml data type (the parameter) and a JSON
+    representation. To be built using the predefined combinators provided by
+    this module.
 
-    For instance, here is an encoding, of type [(int * string)
-    encoding], mapping values of type [int * string] to JSON objects
-    with a field [code] of whose value is a number and a field
-    [message] whose value is a string.
+    For instance, here is an encoding, of type [(int * string) encoding],
+    mapping values of type [int * string] to JSON objects with a field [code] of
+    whose value is a number and a field [message] whose value is a string.
 
     [let enc = obj2 (req "code" int) (req "message" string)]
 
     This encoding serves three purposes:
 
-      1. Output an OCaml value of type ['a] to an intermediate JSON
-         representation using {!construct}. To be printed to actual
-         JSON using an external library.
-      2. Input a JSON intermediate structure (already parsed with an external
-         library) to produce an OCaml value of type ['a].
-      3. Describe this encoding in JSON-schema format for inter-operability:
-         you describe the encoding of your internal types, and obtain
-         machine-readable descriptions of the formats as a byproduct.
-         Specific documentation combinators are provided for that purpose.
+    1. Output an OCaml value of type ['a] to an intermediate JSON representation
+    using {!construct}. To be printed to actual JSON using an external library.
+    2. Input a JSON intermediate structure (already parsed with an external
+    library) to produce an OCaml value of type ['a]. 3. Describe this encoding
+    in JSON-schema format for inter-operability: you describe the encoding of
+    your internal types, and obtain machine-readable descriptions of the formats
+    as a byproduct. Specific documentation combinators are provided for that
+    purpose.
 
     By default, this library provides functions that work on the
-    {!Json_repr.ezjsonm} data type, compatible with {!Ezjsonm.value}.
-    However, encodings are not tied with this representation.
-    See functor {!Make} and module {!Json_repr} for using another format. *)
+    {!Json_repr.ezjsonm} data type, compatible with {!Ezjsonm.value}. However,
+    encodings are not tied with this representation. See functor {!Make} and
+    module {!Json_repr} for using another format. *)
 type 'a encoding
 
 (** {2 Constructors and destructors for Json_repr.ezjsonm} *) (***************)
@@ -96,18 +94,19 @@ val construct_seq :
 (** Converts json AST ([ezjsonm]) into a sequence representation *)
 val jsonm_lexeme_seq_of_ezjson : Json_repr.ezjsonm -> jsonm_lexeme Seq.t
 
-(** Reads an OCaml value from a JSON value and an encoding.
-    May raise [Cannot_destruct].
+(** Reads an OCaml value from a JSON value and an encoding. May raise
+    [Cannot_destruct].
 
     This function works with JSON data represented in the {!Json_repr.ezjsonm}
     format. See functor {!Make} for using another representation.
 
-      @param [bson_relaxation] (default to [false]) works around a limitation of
-      the BSON format. Specifically, in BSON, arrays are represented as
-      number-indexed objects. When nested deep inside a value, arrays and
-      objects are tagged to distinguish them, but at the top-level. However, at
-      the top-level this is not the case. As a result, it is impossible to
-      disintguish a naked array from a naked object. *)
+    @param [bson_relaxation]
+      (default to [false]) works around a limitation of the BSON format.
+      Specifically, in BSON, arrays are represented as number-indexed objects.
+      When nested deep inside a value, arrays and objects are tagged to
+      distinguish them, but at the top-level. However, at the top-level this is
+      not the case. As a result, it is impossible to disintguish a naked array
+      from a naked object. *)
 val destruct : ?bson_relaxation:bool -> 't encoding -> Json_repr.ezjsonm -> 't
 
 (** {2 JSON type combinators for simple immediates} *)
@@ -125,64 +124,63 @@ val empty : unit encoding
 
 (** An encoding of an OCaml int by a JSON number.
 
-    When destructing, the JSON number cannot have a fractional part,
-    and must be between [-2^30] and [2^30-1] (these bounds are chosen
-    to be compatible with both 32-bit and 64bit native OCaml compilers
-    as well as JavaScript). When constructing, the value coming from
-    the OCaml world is assumed to be valid, otherwise an
-    [Invalid_argument] will be raised (can only happen on 64-bit systems).
+    When destructing, the JSON number cannot have a fractional part, and must be
+    between [-2^30] and [2^30-1] (these bounds are chosen to be compatible with
+    both 32-bit and 64bit native OCaml compilers as well as JavaScript). When
+    constructing, the value coming from the OCaml world is assumed to be valid,
+    otherwise an [Invalid_argument] will be raised (can only happen on 64-bit
+    systems).
 
-    Use {!int32} or {!int53} for a greater range.
-    Use {!ranged_int} to restrict to an interval. *)
+    Use {!int32} or {!int53} for a greater range. Use {!ranged_int} to restrict
+    to an interval. *)
 val int : int encoding
 
 (** An encoding of an OCaml int32 by a JSON number.
 
-    Must be a floating point without fractional part and between
-    [-2^31] and [2^31-1] when destructing. Never fails when
-    constructing, as all 32-bit integers are included in JSON numbers. *)
+    Must be a floating point without fractional part and between [-2^31] and
+    [2^31-1] when destructing. Never fails when constructing, as all 32-bit
+    integers are included in JSON numbers. *)
 val int32 : int32 encoding
 
 (** An encoding of a JSON-representable OCaml int64 by a JSON number.
 
     Restricted to the [-2^53] to [2^53] range, as this is the limit of
-    representable integers in JSON numbers. Must be a floating point
-    without fractional part and in this range when destructing. When
-    constructing, the value coming from the OCaml world is assumed to
-    be in this range, otherwise an [Invalid_argument] will be raised. *)
+    representable integers in JSON numbers. Must be a floating point without
+    fractional part and in this range when destructing. When constructing, the
+    value coming from the OCaml world is assumed to be in this range, otherwise
+    an [Invalid_argument] will be raised. *)
 val int53 : int64 encoding
 
 (** An encoding of an OCaml int by a JSON number restricted to a specific range.
 
     The bounds must be between [-2^30] and [2^30-1].
 
-    The inclusive bounds are checked when destructing. When
-    constructing, the value coming from the OCaml world is assumed to
-    be within the bounds, otherwise an [Invalid_argument] will be
-    raised. The string parameter is a name used to tweak the error
-    messages. *)
+    The inclusive bounds are checked when destructing. When constructing, the
+    value coming from the OCaml world is assumed to be within the bounds,
+    otherwise an [Invalid_argument] will be raised. The string parameter is a
+    name used to tweak the error messages. *)
 val ranged_int : minimum:int -> maximum:int -> string -> int encoding
 
-(** An encoding of an OCaml int32 by a JSON number restricted to a specific range.
+(** An encoding of an OCaml int32 by a JSON number restricted to a specific
+    range.
 
     The bounds must be between [-2^31] and [2^31-1].
 
-    The inclusive bounds are checked when destructing. When
-    constructing, the value coming from the OCaml world is assumed to
-    be within the bounds, otherwise an [Invalid_argument] will be
-    raised. The string parameter is a name used to tweak the error
-    messages. *)
+    The inclusive bounds are checked when destructing. When constructing, the
+    value coming from the OCaml world is assumed to be within the bounds,
+    otherwise an [Invalid_argument] will be raised. The string parameter is a
+    name used to tweak the error messages. *)
 val ranged_int32 : minimum:int32 -> maximum:int32 -> string -> int32 encoding
 
-(** An encoding of an OCaml int64 by a JSON number restricted to a specific range.
+(** An encoding of an OCaml int64 by a JSON number restricted to a specific
+    range.
 
     The bounds must be between [-2^53] and [2^53].
 
-    The inclusive bounds are checked when destructing. When
-    constructing, the value coming from the OCaml world is assumed to
-    be within the bounds, otherwise an [Invalid_argument] will be
-    raised. The string parameter is a name used to tweak the error
-    messages. *)
+    The inclusive bounds are checked when destructing. When constructing, the
+    value coming from the OCaml world is assumed to be within the bounds,
+    otherwise an [Invalid_argument] will be raised. The string parameter is a
+    name used to tweak the error messages. *)
 val ranged_int53 : minimum:int64 -> maximum:int64 -> string -> int64 encoding
 
 (** An encoding of an OCaml boolean by a JSON one. *)
@@ -203,13 +201,13 @@ val bytes : bytes encoding
 (** An encoding of an OCaml float by a JSON number. *)
 val float : float encoding
 
-(** An encoding of an OCaml float by a JSON number with range constraints  *)
+(** An encoding of an OCaml float by a JSON number with range constraints *)
 val ranged_float : minimum:float -> maximum:float -> string -> float encoding
 
 (** An encoding of an OCaml option by a nullable JSON value. Raises
-    [Invalid_argument] when nesting options – i.e., when building ['a option
-    option encoding]. Also raises [Invalid_argument] when used on the encoding
-    of [null]. *)
+    [Invalid_argument] when nesting options – i.e., when building
+    ['a option option encoding]. Also raises [Invalid_argument] when used on the
+    encoding of [null]. *)
 val option : 'a encoding -> 'a option encoding
 
 (** {2 JSON type combinators for objects} *)
@@ -231,13 +229,13 @@ val opt :
   't encoding ->
   't option field
 
-(** An optional field of a given type.
-    The field is omitted when equal to the default value except when [construct]
-    is [true].
+(** An optional field of a given type. The field is omitted when equal to the
+    default value except when [construct] is [true].
 
-    @param [equal] defaults to the polymorphic, structural equality ([( = )]).
-    You must set this function if the type of data carried by the field is not
-    comparable (e.g., a {!Seq.t}). *)
+    @param [equal]
+      defaults to the polymorphic, structural equality ([( = )]). You must set
+      this function if the type of data carried by the field is not comparable
+      (e.g., a {!Seq.t}). *)
 val dft :
   ?title:string ->
   ?description:string ->
@@ -334,11 +332,10 @@ val obj10 :
   'f10 field ->
   ('f1 * 'f2 * 'f3 * 'f4 * 'f5 * 'f6 * 'f7 * 'f8 * 'f9 * 'f10) encoding
 
-(** Merge two object [encoding]s. For describing heavyweight objects with
-    a lot of fields. The ocaml type is a pair of tuples, but the JSON
-    object is flat. Both arguments must be object encodings,
-    otherwise a future {!construct}, {!destruct} or {!schema} will fail
-    with [Invalid_argument]. *)
+(** Merge two object [encoding]s. For describing heavyweight objects with a lot
+    of fields. The ocaml type is a pair of tuples, but the JSON object is flat.
+    Both arguments must be object encodings, otherwise a future {!construct},
+    {!destruct} or {!schema} will fail with [Invalid_argument]. *)
 val merge_objs : 'o1 encoding -> 'o2 encoding -> ('o1 * 'o2) encoding
 
 (** {2 JSON type combinators for arrays} *)
@@ -452,12 +449,11 @@ val tup10 :
   'f10 encoding ->
   ('f1 * 'f2 * 'f3 * 'f4 * 'f5 * 'f6 * 'f7 * 'f8 * 'f9 * 'f10) encoding
 
-(** Merge two tuple [encoding]s. For describing heavyweight arrays with a
-    lot of cells. The ocaml type is a pair of tuples, but the JSON
-    array is flat, with the elements of the first tuple before the
-    ones of the second. Both arguments must be tuple encodings,
-    otherwise a future {!construct}, {!destruct} or {!schema} will fail
-    with [Invalid_argument]. *)
+(** Merge two tuple [encoding]s. For describing heavyweight arrays with a lot of
+    cells. The ocaml type is a pair of tuples, but the JSON array is flat, with
+    the elements of the first tuple before the ones of the second. Both
+    arguments must be tuple encodings, otherwise a future {!construct},
+    {!destruct} or {!schema} will fail with [Invalid_argument]. *)
 val merge_tups : 'a1 encoding -> 'a2 encoding -> ('a1 * 'a2) encoding
 
 (** {2 JSON type combinators for unions} *)
@@ -467,10 +463,10 @@ val merge_tups : 'a1 encoding -> 'a2 encoding -> ('a1 * 'a2) encoding
 (** A case for describing union types using {!union} ans {!case}. *)
 type 't case
 
-(** To be used inside a {!union}. Takes a [encoding] for a specific
-    case, and a converter to and from a type common to all cases
-    (['t]). Usually, it consists in boxing / deboxing the specific
-    data in an OCaml sum type constructor. *)
+(** To be used inside a {!union}. Takes a [encoding] for a specific case, and a
+    converter to and from a type common to all cases (['t]). Usually, it
+    consists in boxing / deboxing the specific data in an OCaml sum type
+    constructor. *)
 val case :
   ?title:string ->
   ?description:string ->
@@ -486,13 +482,12 @@ val union : 't case list -> 't encoding
 
 (*************************************)
 
-(** A simple custom encoding using the {!Json_repr.ezjsonm}
-    intermediate representation for the conversion functions. The
-    resulting encoding is usable with any other instanciation of
-    functor {!Make}, internal conversions may be performed needed.
-    The second transformer function can
-    [raise (Cannot_destruct ([ (* location *)], exn))]
-    to indicate an error, which will be relocated correctly. *)
+(** A simple custom encoding using the {!Json_repr.ezjsonm} intermediate
+    representation for the conversion functions. The resulting encoding is
+    usable with any other instanciation of functor {!Make}, internal conversions
+    may be performed needed. The second transformer function can
+    [raise (Cannot_destruct ([ (* location *)], exn))] to indicate an error,
+    which will be relocated correctly. *)
 val custom :
   ?is_object:bool ->
   ('t -> Json_repr.ezjsonm) ->
@@ -500,9 +495,9 @@ val custom :
   schema:Json_schema.schema ->
   't encoding
 
-(** An encoding adapter, with an optional handwritten schema.
-    The second transformer function can [raise (Cannot_destruct ([], exn))]
-    to indicate an error, which will be relocated correctly. *)
+(** An encoding adapter, with an optional handwritten schema. The second
+    transformer function can [raise (Cannot_destruct ([], exn))] to indicate an
+    error, which will be relocated correctly. *)
 val conv :
   ('a -> 'b) ->
   ('b -> 'a) ->
@@ -510,36 +505,38 @@ val conv :
   'b encoding ->
   'a encoding
 
-(** A fixpoint combinator. Links a recursive OCaml type to an internal
-    JSON schema reference, by allowing to use the encoding inside its
-    own definition. The first parameter is a path, that must be unique
-    and respect the format of {!Json_schema.add_definition}. It is
-    used to encode the recursivity as a named reference in the JSON
-    schema.
+(** A fixpoint combinator. Links a recursive OCaml type to an internal JSON
+    schema reference, by allowing to use the encoding inside its own definition.
+    The first parameter is a path, that must be unique and respect the format of
+    {!Json_schema.add_definition}. It is used to encode the recursivity as a
+    named reference in the JSON schema.
 
-    Here is an example to turn a standard OCaml list into either
-    ["nil"] for [[]] or [{"hd":hd,"tl":tl}] for [hd::tl].
+    Here is an example to turn a standard OCaml list into either ["nil"] for
+    [[]] or [{"hd":hd,"tl":tl}] for [hd::tl].
 
-{[
-let reclist item_encoding =
-   mu "list" @@ fun self ->
-   union [
-      case (string_enum [ "nil", () ])
-         (function [] -> Some () | _ :: _ -> None)
-         (fun () -> []) ;
-      case (obj2 (req "hd" itemencoding) (req "tl" self))
-         (function hd :: tl -> Some (hd, tl) | [] -> None)
-         (fun (hd, tl) -> hd :: tl)
-   ]
-]}
+    {[
+      let reclist item_encoding =
+        mu "list" @@ fun self ->
+        union
+          [
+            case
+              (string_enum [("nil", ())])
+              (function [] -> Some () | _ :: _ -> None)
+              (fun () -> []);
+            case
+              (obj2 (req "hd" itemencoding) (req "tl" self))
+              (function hd :: tl -> Some (hd, tl) | [] -> None)
+              (fun (hd, tl) -> hd :: tl);
+          ]
+    ]}
 
-    Notice that the function passed to [mu] must be pure. Otherwise,
-    the behavior is unspecified.
+    Notice that the function passed to [mu] must be pure. Otherwise, the
+    behavior is unspecified.
 
-    A stateful recursive encoding can still be put under a [delayed]
-    combinator to make sure that a new encoding is generated each
-    time it is used. Caching the encoding generation when the state
-    has not changed is then the responsability of the client. *)
+    A stateful recursive encoding can still be put under a [delayed] combinator
+    to make sure that a new encoding is generated each time it is used. Caching
+    the encoding generation when the state has not changed is then the
+    responsability of the client. *)
 val mu :
   string ->
   ?title:string ->
@@ -553,16 +550,15 @@ val any_ezjson_value : Json_repr.ezjsonm encoding
 (** A valid JSON document (i.e. an array or object value). *)
 val any_document : Json_repr.any encoding
 
-(** A valid JSON object.
-    May raise {!Unexpected}. Specifically, the [construct] or [destruct] (or
-    similar) function using this encoding will raise {!Unexpected} if given
-    anything other than an object to handle. *)
+(** A valid JSON object. May raise {!Unexpected}. Specifically, the [construct]
+    or [destruct] (or similar) function using this encoding will raise
+    {!Unexpected} if given anything other than an object to handle. *)
 val any_object : Json_repr.any encoding
 
-(** A valid JSON object in ezjsonm representation.
-    May raise {!Unexpected}. Specifically, the [construct] or [destruct] (or
-    similar) function using this encoding will raise {!Unexpected} if given
-    anything other than an object to handle. *)
+(** A valid JSON object in ezjsonm representation. May raise {!Unexpected}.
+    Specifically, the [construct] or [destruct] (or similar) function using this
+    encoding will raise {!Unexpected} if given anything other than an object to
+    handle. *)
 val any_ezjson_object : Json_repr.ezjsonm encoding
 
 (** The encoding of a JSON schema, linked to its OCaml definiton. *)
@@ -572,13 +568,12 @@ val any_schema : Json_schema.schema encoding
 
 (********************************)
 
-(** Describe an encoding in JSON schema format.
-    May raise {!Bad_schema}. *)
+(** Describe an encoding in JSON schema format. May raise {!Bad_schema}. *)
 val schema : ?definitions_path:string -> 't encoding -> Json_schema.schema
 
-(** Name a definition so its occurences can be shared in the JSON
-    schema.  The first parameter is a path, that must be unique and
-    respect the format of {!Json_schema.add_definition}. *)
+(** Name a definition so its occurences can be shared in the JSON schema. The
+    first parameter is a path, that must be unique and respect the format of
+    {!Json_schema.add_definition}. *)
 val def :
   string -> ?title:string -> ?description:string -> 't encoding -> 't encoding
 
@@ -586,8 +581,8 @@ val def :
 
 (************************************************************)
 
-(** Exception raised by destructors, with the location in the original
-    JSON structure and the specific error. *)
+(** Exception raised by destructors, with the location in the original JSON
+    structure and the specific error. *)
 exception Cannot_destruct of (Json_query.path * exn)
 
 (** Unexpected kind of data encountered (w/ the expectation). *)
@@ -596,7 +591,7 @@ exception Unexpected of string * string
 (** Some {!union} couldn't be destructed, w/ the reasons for each {!case}. *)
 exception No_case_matched of exn list
 
-(** Array of unexpected size encountered  (w/ the expectation). *)
+(** Array of unexpected size encountered (w/ the expectation). *)
 exception Bad_array_size of int * int
 
 (** Missing field in an object. *)
@@ -643,30 +638,32 @@ end
 
 module Make (Repr : Json_repr.Repr) : S with type repr_value = Repr.value
 
-(** Custom encoders for an OCaml type, given both custom conversion
-    functions. The actual representation is not known in advance, so
-    the conversion functions have to examine / construct the JSON
-    value through the first class modules they are passed. The [read]
-    transformer function can [raise (Cannot_destruct ([], "message"))]
-    to indicate an error, which will be relocated correctly.
+(** Custom encoders for an OCaml type, given both custom conversion functions.
+    The actual representation is not known in advance, so the conversion
+    functions have to examine / construct the JSON value through the first class
+    modules they are passed. The [read] transformer function can
+    [raise (Cannot_destruct ([], "message"))] to indicate an error, which will
+    be relocated correctly.
 
     Here is an example of how to build such a value for a type ['t].
 
-    {[ let read
-         : type tf. (module Json_repr.Repr with type value = tf) -> tf -> 't
-         = fun (module Repr_f) repr ->
-           match Repr_f.view repr with
-           | `Null (* destruct the JSON using [Repr_f.view] *) ->
-             (* create a value of type 't *)
-           | _ ->
-             (* or fail with this wrapping exception *)
-             raise (Cannot_destruct ([ (* location *) ], (* exn *))) in
-       let write
-         : type tf. (module Json_repr.Repr with type value = tf) -> 't -> tf
-         = fun (module Repr_f) v ->
-           (* examine the value and produce a JSON using [Repr_f.repr] *)
-           Repr_f.repr `Null in
-       { read ; write } ]} *)
+    {[
+      let read
+        : type tf. (module Json_repr.Repr with type value = tf) -> tf -> 't
+        = fun (module Repr_f) repr ->
+          match Repr_f.view repr with
+          | `Null (* destruct the JSON using [Repr_f.view] *) ->
+            (* create a value of type 't *)
+          | _ ->
+            (* or fail with this wrapping exception *)
+            raise (Cannot_destruct ([ (* location *) ], (* exn *))) in
+      let write
+        : type tf. (module Json_repr.Repr with type value = tf) -> 't -> tf
+        = fun (module Repr_f) v ->
+          (* examine the value and produce a JSON using [Repr_f.repr] *)
+          Repr_f.repr `Null in
+      { read ; write }
+    ]} *)
 type 't repr_agnostic_custom = {
   write : 'rt. (module Json_repr.Repr with type value = 'rt) -> 't -> 'rt;
   read : 'rf. (module Json_repr.Repr with type value = 'rf) -> 'rf -> 't;
