@@ -39,7 +39,8 @@ and element = {
       (** A valid value must equal one of these constants. *)
   kind : element_kind;  (** The type-specific part. *)
   format : string option;
-      (** predefined formats such as [date-time], [email], [ipv4], [ipv6], [uri]. *)
+      (** predefined formats such as [date-time], [email], [ipv4], [ipv6],
+          [uri]. *)
   id : string option;  (** An optional ID. *)
 }
 
@@ -63,11 +64,11 @@ and element_kind =
   | Null  (** The null value. *)
   | Any  (** Any JSON value. *)
   | Dummy
-      (** For building cyclic definitions, a definition bound to a dummy
-      will be considered absent for {!add_definition} but present
-      for {!update}. The idea is to insert a dummy definition, build a
-      cyclic structure using it for recursion, and finally update the
-      definition with the structure. *)
+      (** For building cyclic definitions, a definition bound to a dummy will be
+          considered absent for {!add_definition} but present for {!update}. The
+          idea is to insert a dummy definition, build a cyclic structure using
+          it for recursion, and finally update the definition with the
+          structure. *)
 
 (** Grammar combinators. *)
 and combinator =
@@ -97,21 +98,21 @@ and numeric_specs = {
 (** Parameters of the [Object] type specifier. *)
 and object_specs = {
   properties : (string * element * bool * Json_repr.any option) list;
-      (** The names and types of properties, with a flag to indicate if
-        they are required ([true]) or optional. *)
+      (** The names and types of properties, with a flag to indicate if they are
+          required ([true]) or optional. *)
   pattern_properties : (string * element) list;
-      (** Alternative definition of properties, matching field names
-        using regexps instead of constant strings. *)
+      (** Alternative definition of properties, matching field names using
+          regexps instead of constant strings. *)
   additional_properties : element option;
       (** The type of additional properties, if allowed. *)
   min_properties : int;  (** The minimum number of properties. *)
   max_properties : int option;  (** The maximum number of properties. *)
   schema_dependencies : (string * element) list;
-      (** Additional schemas the value must verify if a property is
-        present (property, additional schema). *)
+      (** Additional schemas the value must verify if a property is present
+          (property, additional schema). *)
   property_dependencies : (string * string list) list;
-      (** Additional properties required whenever some property is
-        present (property, additional properties). *)
+      (** Additional properties required whenever some property is present
+          (property, additional properties). *)
 }
 
 (** Parameters of the [String] type specifier. *)
@@ -120,7 +121,9 @@ and string_specs = {
   min_length : int;  (** The minimum string length. *)
   max_length : int option;  (** The maximum string length. *)
   str_format : string option;
-      (** Special format of the string (cf {{:https://json-schema.org/understanding-json-schema/reference/string.html#format} json schema documentation}). *)
+      (** Special format of the string (cf
+          {{:https://json-schema.org/understanding-json-schema/reference/string.html#format}
+           json schema documentation}). *)
 }
 
 (** {2 Combinators to build schemas and elements} *)
@@ -130,16 +133,16 @@ and string_specs = {
 (** Construct a naked element (all optional properties to None). *)
 val element : element_kind -> element
 
-(** Construct a schema from its root, without any definition ; the
-    element is checked not to contain any [Def] element. *)
+(** Construct a schema from its root, without any definition ; the element is
+    checked not to contain any [Def] element. *)
 val create : element -> schema
 
 (** Extract the root element from an existing schema. *)
 val root : schema -> element
 
-(** Update a schema from its root, using the definitions from an
-    existing schema ; the element is checked to contain only valid
-    [Def] elements ; unused definitions are kept, see {!simplify}. *)
+(** Update a schema from its root, using the definitions from an existing schema
+    ; the element is checked to contain only valid [Def] elements ; unused
+    definitions are kept, see {!simplify}. *)
 val update : element -> schema -> schema
 
 (** Describes the implemented schema specification as a schema. *)
@@ -156,35 +159,35 @@ val is_nullable : schema -> bool
 
 (** {2 Named definitions} *) (***********************************************)
 
-(** Merges the definitions of two schemas if possible and returns the
-    updated schemas, so that their elements can be mixed without
-    introducing dangling references ; if two different definitions are
-    bound to the same path, {!Duplicate_definition} will be raised. *)
+(** Merges the definitions of two schemas if possible and returns the updated
+    schemas, so that their elements can be mixed without introducing dangling
+    references ; if two different definitions are bound to the same path,
+    {!Duplicate_definition} will be raised. *)
 val merge_definitions : schema * schema -> schema * schema
 
 (** Remove the definitions that are not present in the schema. *)
 val simplify : schema -> schema
 
-(** Adds a definition by its path. If the path is absolute (starting
-    with a ['/']), it is untouched. Otherwise, it is considered
-    relative to ["#/definitions"] as recommended by the standard. May
-    raise {!Duplicate_definition} if this path is already used or any
-    error raised by {!Json_repr.path_of_json_pointer} with
-    [~wildcards:false]. Returns the modified schema and the [Def_ref]
-    node that references this definition to be used in the schema. *)
+(** Adds a definition by its path. If the path is absolute (starting with a
+    ['/']), it is untouched. Otherwise, it is considered relative to
+    ["#/definitions"] as recommended by the standard. May raise
+    {!Duplicate_definition} if this path is already used or any error raised by
+    {!Json_repr.path_of_json_pointer} with [~wildcards:false]. Returns the
+    modified schema and the [Def_ref] node that references this definition to be
+    used in the schema. *)
 val add_definition :
   ?definitions_path:string -> string -> element -> schema -> schema * element
 
-(** Finds a definition by its path, may raise [Not_found].
-    See {!add_definition} for the name format.*)
+(** Finds a definition by its path, may raise [Not_found]. See {!add_definition}
+    for the name format.*)
 val find_definition : ?definitions_path:string -> string -> schema -> element
 
-(** Tells if a path leads to a definition.
-    See {!add_definition} for the name format. *)
+(** Tells if a path leads to a definition. See {!add_definition} for the name
+    format. *)
 val definition_exists : ?definitions_path:string -> string -> schema -> bool
 
-(** Build a reference to a definition.
-    See {!add_definition} for the name format. *)
+(** Build a reference to a definition. See {!add_definition} for the name
+    format. *)
 val definition_ref : ?definitions_path:string -> string -> element
 
 (** {2 Predefined values} *) (***********************************************)
@@ -209,8 +212,8 @@ val numeric_specs : numeric_specs
     format. See functor {!Make} for using another representation. *)
 val to_json : schema -> Json_repr.ezjsonm
 
-(** Parse a JSON structure as a JSON schema, if possible.
-    May throw {!Cannot_parse}.
+(** Parse a JSON structure as a JSON schema, if possible. May throw
+    {!Cannot_parse}.
 
     This function works with JSON data represented in the {!Json_repr.ezjsonm}
     format. See functor {!Make} for using another representation. *)
@@ -221,8 +224,8 @@ val pp : Format.formatter -> schema -> unit
 
 (** {2 Errors} *) (**********************************************************)
 
-(** An error happened during parsing.
-    May box one of the following exceptions, among others.. *)
+(** An error happened during parsing. May box one of the following exceptions,
+    among others.. *)
 exception Cannot_parse of Json_query.path * exn
 
 (** A reference to a non-existent location was detected. *)

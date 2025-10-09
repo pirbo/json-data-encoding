@@ -41,9 +41,9 @@ val parse : string -> value
 
 (** Produce a JSON string using the native browser printer.
 
-    If indent is not present, everything is printed on a single line.
-    Otherwise, it is the number (up to 10) of spaces inserted at
-    beginning of lines for each indentation level. *)
+    If indent is not present, everything is printed on a single line. Otherwise,
+    it is the number (up to 10) of spaces inserted at beginning of lines for
+    each indentation level. *)
 val stringify : ?indent:int -> value -> string
 
 (** Same as {!parse} with native browser strings. *)
