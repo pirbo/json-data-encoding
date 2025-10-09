@@ -37,11 +37,9 @@ let version = "http://json-schema.org/draft-04/schema#"
    a precomputed ID-element map and a cache for external documents. *)
 type schema = {
   root : element;
-  source : Uri.t;
   (* whose fragment should be empty *)
   definitions : (path * element) list;
   ids : (string * element) list;
-  world : schema list;
 }
 
 and element = {
@@ -1291,10 +1289,8 @@ module Make (Repr : Json_repr.Repr) = struct
                ([], Dangling_reference Uri.(with_fragment empty (Some id)))))
       !collected_id_refs ;
     let ids = !collected_id_defs in
-    let source = schema_source in
-    let world = [] in
     let definitions = !collected_definitions in
-    {root; definitions; source; ids; world}
+    {root; definitions; ids}
 
   (*-- creation and update ---------------------------------------------------*)
 
@@ -1347,7 +1343,7 @@ module Make (Repr : Json_repr.Repr) = struct
 
   let create root =
     let ids = check_definitions root [] in
-    {root; definitions = []; world = []; ids; source = Uri.empty}
+    {root; definitions = []; ids}
 
   let root {root} = root
 
@@ -1362,8 +1358,6 @@ module Make (Repr : Json_repr.Repr) = struct
       root = element (Ext_ref (Uri.of_string version));
       definitions = [];
       ids = [];
-      world = [];
-      source = Uri.empty;
     }
 
   (* remove unused definitions from the schema *)
