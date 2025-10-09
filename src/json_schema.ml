@@ -44,11 +44,9 @@ module Id_set = Set.Make (String)
    a precomputed ID-element map and a cache for external documents. *)
 type schema = {
   root : element;
-  source : Uri.t;
   (* whose fragment should be empty *)
   definitions : element Def_map.t;
   ids : element Id_map.t;
-  world : schema list;
 }
 
 and element = {
@@ -1300,10 +1298,8 @@ module Make (Repr : Json_repr.Repr) = struct
                ([], Dangling_reference Uri.(with_fragment empty (Some id)))))
       !collected_id_refs ;
     let ids = !collected_id_defs in
-    let source = schema_source in
-    let world = [] in
     let definitions = !collected_definitions in
-    {root; definitions; source; ids; world}
+    {root; definitions; ids}
 
   (*-- creation and update ---------------------------------------------------*)
 
@@ -1356,7 +1352,7 @@ module Make (Repr : Json_repr.Repr) = struct
 
   let create root =
     let ids = check_definitions root Def_map.empty in
-    {root; definitions = Def_map.empty; world = []; ids; source = Uri.empty}
+    {root; definitions = Def_map.empty; ids}
 
   let root {root} = root
 
@@ -1371,8 +1367,6 @@ module Make (Repr : Json_repr.Repr) = struct
       root = element (Ext_ref (Uri.of_string version));
       definitions = Def_map.empty;
       ids = Id_map.empty;
-      world = [];
-      source = Uri.empty;
     }
 
   (* remove unused definitions from the schema *)
