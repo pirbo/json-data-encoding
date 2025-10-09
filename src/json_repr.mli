@@ -112,10 +112,7 @@ type yojson =
     (** A number without decimal point or exponent, preserved as string. *)
   | `List of yojson list  (** A JS array. *)
   | `Null  (** The [null] constant. *)
-  | `String of string  (** An UTF-8 encoded string. *)
-  | `Tuple of yojson list  (** A tuple (non-standard). Syntax: ("abc", 123). *)
-  | `Variant of string * yojson option
-    (** A variant (non-standard). Syntax: <"Foo"> or <"Bar": 123>. *) ]
+  | `String of string  (** An UTF-8 encoded string. *) ]
 
 (** A view over the {!yojson} representation.*)
 module Yojson : Repr with type value = yojson

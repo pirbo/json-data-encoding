@@ -93,15 +93,10 @@ module Yojson = struct
     | `Intlit of string
     | `List of value list
     | `Null
-    | `String of string
-    | `Tuple of value list
-    | `Variant of string * value option ]
+    | `String of string ]
 
   let view = function
     | `Intlit i -> `String i
-    | `Tuple l -> `A l
-    | `Variant (label, Some x) -> `A [`String label; x]
-    | `Variant (label, None) -> `String label
     | `Assoc l -> `O l
     | `List l -> `A l
     | `Int i -> `Float (float i)
@@ -204,13 +199,10 @@ let pp ?(compact = false) ?(pp_string = pp_string) (type value)
   if compact then pp_compact ppf v else pp_box ppf v
 
 let from_yojson non_basic =
-  (* Delete `Variant, `Tuple and `Intlit *)
+  (* Delete `Intlit *)
   let rec to_basic non_basic =
     match non_basic with
     | `Intlit i -> `String i
-    | `Tuple l -> `List (List.map to_basic l)
-    | `Variant (label, Some x) -> `List [`String label; to_basic x]
-    | `Variant (label, None) -> `String label
     | `Assoc l ->
         `Assoc (List.map (fun (key, value) -> (key, to_basic value)) l)
     | `List l -> `List (List.map to_basic l)
