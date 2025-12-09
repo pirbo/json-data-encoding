@@ -646,9 +646,9 @@ module Make (Repr : Json_repr.Repr) = struct
                  (function
                    | None -> `Bool false | Some elt -> `O (format_element elt))
             @@ set_if_neq "minProperties" specs.min_properties 0 (fun i ->
-                   `Float (float i))
+                `Float (float i))
             @@ set_if_some "maxProperties" specs.max_properties (fun i ->
-                   `Float (float i))
+                `Float (float i))
             @@ set_if_cons
                  "schemaDependencies"
                  specs.schema_dependencies
@@ -677,11 +677,11 @@ module Make (Repr : Json_repr.Repr) = struct
                  "items"
                  (`A (List.map (fun elt -> obj (format_element elt)) elts))
             @@ set_if_neq "minItems" specs.min_items 0 (fun i ->
-                   `Float (float i))
+                `Float (float i))
             @@ set_if_some "maxItems" specs.max_items (fun i ->
-                   `Float (float i))
+                `Float (float i))
             @@ set_if_neq "uniqueItems" specs.unique_items false (fun b ->
-                   `Bool b)
+                `Bool b)
             @@ set_if_neq
                  "additionalItems"
                  specs.additional_items
@@ -770,9 +770,9 @@ module Make (Repr : Json_repr.Repr) = struct
         | Dummy -> invalid_arg "Json_schema.to_json: remaining dummy element"
         | Any -> set_multiple [] @@ rest)
       @@ set_if_some "default" default (fun j ->
-             Repr.view (Json_repr.any_to_repr (module Repr) j))
+          Repr.view (Json_repr.any_to_repr (module Repr) j))
       @@ set_if_some "enum" enum (fun js ->
-             `A (List.map (Json_repr.any_to_repr (module Repr)) js))
+          `A (List.map (Json_repr.any_to_repr (module Repr)) js))
       @@ set_if_some "format" format (fun s -> `String s)
       @@ []
     in

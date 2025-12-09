@@ -656,12 +656,12 @@ let map_array (t : testable) (ts : testable array) : testable =
     let eq a1 a2 =
       Array.length a1 = Array.length a2
       &&
-      try
-        for i = 0 to Array.length a1 - 1 do
-          if not (T.eq a1.(i) a2.(i)) then raise Exit
-        done ;
-        true
-      with Exit -> false
+        try
+          for i = 0 to Array.length a1 - 1 do
+            if not (T.eq a1.(i) a2.(i)) then raise Exit
+          done ;
+          true
+        with Exit -> false
   end)
 
 let map_obj1 (t1 : testable) : testable =
