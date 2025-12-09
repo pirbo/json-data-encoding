@@ -33,7 +33,7 @@ module Repr : Json_repr.Repr with type value = value
 (** Pre-instanciated {!Json_encoding.Make}. *)
 module Json_encoding : Json_encoding.S with type repr_value = value
 
-(** Pre-instanciated {!Json_encoding.Make}. *)
+(** Pre-instanciated {!Json_query.Make}. *)
 module Json_query : module type of Json_query.Make (Repr)
 
 (** Parse a JSON string using the native browser parser. *)
