@@ -1,7 +1,7 @@
 (tests
  (names test_generated test_big_streaming test_list_map test_seq_is_lazy)
  (modes exe js)
- (libraries json-data-encoding crowbar)
+ (libraries json-data-encoding.stdlib json-data-encoding crowbar)
  (package json-data-encoding))
 
 (executables
