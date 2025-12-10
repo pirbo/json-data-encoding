@@ -2,6 +2,8 @@
 
 (name json-data-encoding)
 
+(implicit_transitive_deps false)
+
 (license "MIT")
 
 (authors
