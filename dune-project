@@ -1,4 +1,4 @@
-(lang dune 3.5)
+(lang dune 3.14)
 
 (name json-data-encoding)
 

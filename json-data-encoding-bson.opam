@@ -7,7 +7,7 @@ license: "MIT"
 homepage: "https://github.com/pirbo/json-data-encoding"
 bug-reports: "https://github.com/pirbo/json-data-encoding/issues"
 depends: [
-  "dune" {>= "3.5"}
+  "dune" {>= "3.14"}
   "ocaml" {>= "4.10"}
   "json-data-encoding" {= version}
   "ocplib-endian" {>= "1.0"}
