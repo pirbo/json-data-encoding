@@ -1,35 +1,24 @@
 (tests
- (names
-  test_generated
-  test_big_streaming
-  test_mu
-  test_list_map
-  test_seq_is_lazy)
- (modes native js)
- (libraries json-data-encoding crowbar alcotest)
+ (names test_generated test_big_streaming test_list_map test_seq_is_lazy)
+ (modes exe js)
+ (libraries json-data-encoding crowbar)
  (package json-data-encoding))
 
-(rule
- (alias runtest_js)
- (action
-  (run node %{dep:./test_generated.bc.js})))
+(executable
+ (name test_mu)
+ (libraries json-data-encoding alcotest)
+ (modes exe js))
 
 (rule
- (alias runtest_js)
- (action
-  (run node %{dep:./test_big_streaming.bc.js})))
-
-(rule
- (alias runtest_js)
+ (alias runtest)
+ (enabled_if
+  (<> %{os_type} "Win32"))
+ (package json-data-encoding)
  (action
   (run node %{dep:./test_mu.bc.js})))
 
 (rule
- (alias runtest_js)
+ (alias runtest)
+ (package json-data-encoding)
  (action
-  (run node %{dep:./test_list_map.bc.js})))
-
-(rule
- (alias runtest_js)
- (action
-  (run node %{dep:./test_seq_is_lazy.bc.js})))
+  (run %{dep:./test_mu.exe})))
