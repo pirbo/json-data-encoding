@@ -1,11 +1,13 @@
 (tests
  (names test_generated test_big_streaming test_list_map test_seq_is_lazy)
+ (modules test_generated test_big_streaming test_list_map test_seq_is_lazy)
  (modes exe js)
  (libraries json-data-encoding.stdlib json-data-encoding crowbar)
  (package json-data-encoding))
 
 (executables
  (names test_mu test_destruct)
+ (modules test_mu test_destruct)
  (libraries json-data-encoding alcotest)
  (modes exe js))
 
